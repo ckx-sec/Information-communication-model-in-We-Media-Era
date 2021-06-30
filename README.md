@@ -1,3 +1,3 @@
 # social_network_model
 
-something maybe you like
+something maybe I like
