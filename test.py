@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-typeList: list = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
+typeList: list[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
                   "gossip", "geography", "language", "movie", "music", "photography", "finance", "technology", "news"]
 
 f = open("nodes", "r", encoding="utf-8").readlines()
@@ -34,7 +34,7 @@ print(G.number_of_edges())
 print(max(G.degree, key=lambda x: x[1]))
 print(G.nodes[11])
 # print(nx.adjacency_matrix(G).todense())
-crap = nx.adjacency_matrix(G).todense()
+crap = nx.adjacency_matrix(G).todense(out=np.ndarray)
 
 #     for c in row:
 #         print(c, end=',')
