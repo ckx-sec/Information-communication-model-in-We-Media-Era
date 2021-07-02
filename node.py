@@ -1,15 +1,5 @@
 from __future__ import annotations
-import time
-
-
-class Message:
-    def __init__(self, writer: Node, content):
-        self.likes = 0
-        self.forwards = 0
-        self.comments = 0
-        self.writer = writer
-        self.content = content
-        self.timestamp = time.time()
+from message import Message
 
 
 class Node:
@@ -22,6 +12,7 @@ class Node:
         self.influence = 0  # 影响力
         self.receiveList = []  # 接收的文章列表
         self.articles = []  # 自己发布的原创性文章
+        self.interest = []
 
     def build_relation(self, node: Node):
         self.relationList.append(node.pid)
@@ -29,6 +20,9 @@ class Node:
     def calculate_influence(self):
         self.influence = self.totalForwarding + \
             pow(self.totalComments, 1/2) + pow(self.totalThumb, 1/3)
+
+    def judge_interest(self, message: Message):
+        topicList = message.getClassification
 
     def sendMessage(self, message: Message, node: Node):
         node.receiveList.append(message)
@@ -47,15 +41,17 @@ class Node:
         message.comments += 1
         message.writer.totalComments += 1
 
-    def follow_someone(self, node: Node):
-        self.following.append(node)
-        node.follower.append(self)
+   
 
 
 class Viewer(Node):
     def __init__(self):
         super().__init__()
-        self.following = []  # 关注了谁
+        self.following:list[Node] = []  # 关注了谁
+
+    def follow(self, node: Blogger):
+            self.following.append(node)
+            node.follower.append(self)
 
     def forwardMessage(self, message: Message):
         message.forwards += 1
@@ -72,7 +68,7 @@ class Viewer(Node):
 class Blogger(Node):
     def __init__(self):
         super().__init__()
-        self.follower = []  # 谁关注了我
+        self.follower:list[Node] = []  # 谁关注了我
 
     def forwardMessage(self, message: Message):
         message.forwards += 1
