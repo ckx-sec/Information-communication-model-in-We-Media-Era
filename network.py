@@ -1,11 +1,16 @@
 from __future__ import annotations
-from typing import Tuple, List, Union
-from node import *
-from message import *
-import copy
-import numpy as np
+import itertools
+import os
+import json
 import random
-import networkx as nx
+import numpy as np
+from message import *
+from node import *
+from typing import Tuple, List, Union
+from itertools import repeat
+
+nodes: dict = {}
+
 
 """
 把话题放进模型
@@ -23,97 +28,143 @@ typeList: list[str] = ["sport", "fashion", "food", "tourism", "furniture", "hist
 
 
 def get_adj_matrix():
-    f = open("nodes", "r", encoding="utf-8").readlines()
-    edge = []
-    node = []
-    for i in f:
-        i = i.split(',')
-        node.append(i[-1].strip())
-    f1 = open("edges", "r", encoding="utf-8").readlines()
-    for i in f1:
-        i = i.split(',')
-        a = (int(i[0]), int(i[1].strip()))
-        edge.append(a)
 
-    G = nx.Graph()
-    node_and_dict = []
-    for i in node:
-        node_and_dict.append(
-            (int(i), dict(map(lambda x: (x, random.random()), typeList))))
-    G.add_nodes_from(node_and_dict)
-    G.add_edges_from(edge)
-    return nx.adjacency_matrix(G).todense(out=np.ndarray)
+    if os.path.isfile('crap.json'):
+        return json.loads(open('crap.json').read())
+
+    f = open("nodes", "r", encoding="utf-8").readlines()
+    node_ids = map(lambda x: int(x.split(',')[-1]), f)
+    f1 = open("edges", "r", encoding="utf-8").readlines()
+    edges = list(map(
+        lambda x: tuple(
+            map(lambda y: int(y), x.split(','))),
+        f1))
+
+    ret: list[tuple[int, tuple[int]]] = []
+    for id in node_ids:
+        relation_ids = []
+        i = 0
+        edges_len = len(edges)
+        while i < edges_len:
+            edge = edges[i]
+            i += 1
+            if edge[0] == id:
+                relation_ids.append(edge[1])
+            elif edge[1] == id:
+                relation_ids.append(edge[0])
+            else:
+                continue
+            edges.pop(i-1)
+            edges_len -= 1
+        ret.append((id, tuple(relation_ids)))
+
+    open('crap.json', 'w').write(json.dumps(ret))
+
+    # 返回(nodeid,(与node相连的节点id))
+    return tuple(ret)
 
 
 class Network:
+    nodes = nodes
+
     def __init__(self):
-        self.nodes: List[Node] = []
+        # self.nodes: dict = {}
 
         self.edges: List[Tuple[Node, Node]] = []
         self.adjMatrix = np.zeros(
             [len(self.nodes), len(self.nodes)], dtype=int)
         self.type: list = []
-
+        self.paths: list[tuple[int, tuple[int]]] = []
         self.cur_message: Message = None
 
     def generate_network(self):
         self.adjMatrix = get_adj_matrix()
-        for id in range(len(self.adjMatrix)):
+        for id, edge in self.adjMatrix:
             tempnode = Node(id)
             node: Union[Viewer, Blogger] = None
-            for n in self.adjMatrix[id]:
+            for n in edge:
                 tempnode.relationList.append(n)
 
             # TODO? 初始化node的其他属性
 
             # TODO 找一个合适的阈值
-            if tempnode.calculate_influence() < 0.1:
-                node = Viewer()
+            if tempnode.calculate_influence() < 0.01:
+                node = Viewer(id)
             else:
-                node = Blogger()
+                node = Blogger(id)
             node.relationList = tempnode.relationList
             node.interest = dict(map(lambda x: (x, random.random()), typeList))
 
-            self.nodes.append(node)
+            self.nodes[id] = node
 
-        # 初始化关注与被关注的关系
-        for node in self.nodes:
-            if isinstance(node, Blogger):
-                for n in filter(lambda x: x.pid in node.relationList, self.nodes):
-                    if isinstance(n, Blogger):
-                        node.follow(n)
-                    else:
-                        n.follow(node)
+        i = 0
+        values = self.nodes.values()
+        node: Union[Viewer, Blogger]
+        for node in values:
+            i += 1
+            for id in node.relationList:
+                if not self.nodes.get(id):
+                    # 规避数据的坑
+                    node.relationList.remove(id)
+            if isinstance(node, Viewer):
+                for u in random.choices(list(self.nodes.values()), k=random.randint(2, 1000)):
+                    if isinstance(u, Blogger):
+                        node.follow(u)
             else:
-                for n in filter(lambda x: x.pid in node.relationList, self.nodes):
-                    if isinstance(n, Blogger):
-                        node.follow(n)
+                for u in random.choices(list(self.nodes.values()), k=random.randint(2, 1000)):
+                    if isinstance(u, Viewer):
+                        u.follow(node)
 
     def addNode(self, node: Node):
-        self.nodes.append(node)
+        self.nodes[node.pid] = node
 
     def removeNode(self, node: Node):
-        self.nodes.reverse(node)
+        self.nodes.pop(node.pid)
 
     def init_step(self, message: Message):
         '''一个step就是运行一轮传播\n
         这是比较特殊的第一轮'''
+
         self.cur_message = message
-        entry_nodes = filter(
+        entry_nodes = list(filter(
             lambda x: x.interested_in(self.cur_message),
-            self.nodes)
+            self.nodes.values()))
+        entry_nodes = random.choices(entry_nodes, k=random.randint(1, 5))
+        message.writer = random.choice(entry_nodes)
+        self.paths = [(-1, tuple(map(lambda x: x.pid, entry_nodes)))]
         for n in entry_nodes:
             n.status = NodeStatus.pending
 
     def step(self):
         '''一个step就是运行一轮传播'''
-        for node in filter(lambda x: x.status == NodeStatus.pending, self.nodes):
-            # 处理状态为pending的节点
-            if node.interested_in(self.cur_message):
-                node.forwardMessage(self.cur_message)
-            else:
-                node.status = NodeStatus.terminated
+        node: Union[Viewer, Blogger]
+        # pendings = []
+        # for i in self.paths:
+        #     pendings.extend(i[1])
+        self.paths = []
+        for node in list(self.nodes.values()):
+            if node.status == NodeStatus.pending:
+                # 处理状态为pending的节点
+                if node.interested_in(self.cur_message):
+                    dests = tuple(node.forwardMessage(self.cur_message))
+                    self.paths.append((node.pid, dests))
+                else:
+                    node.status = NodeStatus.terminated
 
+    def get_pending_nodes(self):
+        return tuple(filter(lambda x: x.status == NodeStatus.pending, self.nodes.values()))
+
+    def get_passed_nodes(self):
+        return tuple(filter(lambda x: x.status == NodeStatus.passed, self.nodes.values()))
+
+    def get_fresh_nodes(self):
+        return tuple(filter(lambda x: x.status == NodeStatus.fresh, self.nodes.values()))
+
+    def get_terminated_nodes(self):
+        return tuple(filter(lambda x: x.status == NodeStatus.terminated, self.nodes.values()))
+
+    def get_paths(self):
+        return self.paths
     '''
     def topic_input(self, message: Message, initialNode: Node):
         infectStatus = np.zeros(len(self.adjMatrix), dtype=int)

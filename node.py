@@ -1,7 +1,10 @@
 from __future__ import annotations
 from abc import abstractmethod
-from message import Message
+from itertools import chain
+from message import *
 from enum import Enum
+import random
+import network
 
 
 class NodeStatus(Enum):
@@ -18,7 +21,7 @@ class NodeStatus(Enum):
 class Node:
     def __init__(self, pid):
         self.pid = pid
-        self.relationList = []  # 社会关系列表
+        self.relationList:list[int] = []  # 社会关系列表
 
         self.totalThumb = 0  # 总点赞数
         self.totalComments = 0  # 总评论数
@@ -36,8 +39,9 @@ class Node:
 
     # TODO 完善这个或初始化Node的几个值
     def calculate_influence(self) -> float:
-        self.influence = self.totalForwarding + \
-            pow(self.totalComments, 1/2) + pow(self.totalThumb, 1/3)
+        # self.influence = self.totalForwarding + \
+        #    pow(self.totalComments, 1/2) + pow(self.totalThumb, 1/3)
+        self.influence = random.random()
         return self.influence
 
     @abstractmethod
@@ -50,16 +54,18 @@ class Node:
         # 爱好程度
         hobby_degree = sum(
             map(lambda x: self.interest[x], topicList))/len(topicList)
-        if hobby_degree > 0.5:
-            if hobby_degree > 0.8:
-                self.follow(message.writer)
+        if hobby_degree > 0.9:
+            if hobby_degree > 0.95:
+                if message.writer:
+                    self.follow(message.writer)
             return True
         else:
             return False
 
-    def sendMessage(self, message: Message, node: Node):
+    def sendMessage(self, message: Message, node_id: int):
         self.status = NodeStatus.passed
-        node.receiveList.append(message)
+        # node.receiveList.append(message)
+        node = network.nodes[node_id]
         if node.status == NodeStatus.fresh:
             # 收到消息的节点留到下一轮处理
             node.status = NodeStatus.pending
@@ -70,6 +76,7 @@ class Node:
         message.writer.totalForwarding += 1
         for i in self.relationList:
             self.sendMessage(message, i)
+        return self.relationList
 
     # unused
     def likeMessage(self, message: Message):
@@ -83,18 +90,19 @@ class Node:
 
 
 class Viewer(Node):
-    def __init__(self):
-        super().__init__()
-        self.following: list[Node] = []  # 关注了谁
+    def __init__(self, pid):
+        super().__init__(pid)
+        self.following: list[int] = []  # 关注了谁
 
     def follow(self, node: Blogger):
-        self.following.append(node)
-        node.follower.append(self)
+        self.following.append(node.pid)
+        node.follower.append(self.pid)
 
     def forwardMessage(self, message: Message):
         message.forwards += 1
         for i in self.relationList:
             self.sendMessage(message, i)
+        return self.relationList
 
     """
     @classmethod
@@ -126,9 +134,9 @@ class Viewer(Node):
 
 
 class Blogger(Viewer):
-    def __init__(self):
-        super().__init__()
-        self.follower: list[Node] = []  # 谁关注了我
+    def __init__(self, pid):
+        super().__init__(pid)
+        self.follower: list[int] = []  # 谁关注了我
 
     def forwardMessage(self, message: Message):
         message.forwards += 1
@@ -136,6 +144,7 @@ class Blogger(Viewer):
             self.sendMessage(message, i)
         for i in self.follower:
             self.sendMessage(message, i)
+        return chain(self.follower, self.relationList)
 
     # unused
     def releaseMessage(self, content: str):
@@ -144,4 +153,4 @@ class Blogger(Viewer):
         for i in self.relationList:
             self.sendMessage(message, i)
         for i in self.follower:
-            self.sendMessage(message, i)
+            self.sendMessage(message, i.pid)
