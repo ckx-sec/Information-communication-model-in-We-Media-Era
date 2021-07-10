@@ -29,39 +29,55 @@ typeList: list[str] = ["sport", "fashion", "food", "tourism", "furniture", "hist
 
 def get_adj_matrix():
 
-    if os.path.isfile('crap.json'):
-        return json.loads(open('crap.json').read())
+    if not os.path.isfile('crap.json'):
 
-    f = open("nodes", "r", encoding="utf-8").readlines()
-    node_ids = map(lambda x: int(x.split(',')[-1]), f)
-    f1 = open("edges", "r", encoding="utf-8").readlines()
-    edges = list(map(
-        lambda x: tuple(
-            map(lambda y: int(y), x.split(','))),
-        f1))
+        f = open("nodes", "r", encoding="utf-8").readlines()
+        node_ids = map(lambda x: int(x.split(',')[-1]), f)
+        f1 = open("edges", "r", encoding="utf-8").readlines()
+        edges = list(map(
+            lambda x: tuple(
+                map(lambda y: int(y), x.split(','))),
+            f1))
 
-    ret: list[tuple[int, tuple[int]]] = []
-    for id in node_ids:
-        relation_ids = []
-        i = 0
-        edges_len = len(edges)
-        while i < edges_len:
-            edge = edges[i]
-            i += 1
-            if edge[0] == id:
-                relation_ids.append(edge[1])
-            elif edge[1] == id:
-                relation_ids.append(edge[0])
-            else:
-                continue
-            edges.pop(i-1)
-            edges_len -= 1
-        ret.append((id, tuple(relation_ids)))
+        ret: list[tuple[int, list[int]]] = []
+        for id in node_ids:
+            relation_ids = []
+            i = 0
+            edges_len = len(edges)
+            while i < edges_len:
+                edge = edges[i]
+                i += 1
+                if edge[0] == id:
+                    relation_ids.append(edge[1])
+                elif edge[1] == id:
+                    relation_ids.append(edge[0])
+                else:
+                    continue
+                edges.pop(i-1)
+                edges_len -= 1
+            ret.append((id, list(relation_ids)))
 
-    open('crap.json', 'w').write(json.dumps(ret))
+        open('crap.json', 'w').write(json.dumps(ret))
 
+    else:
+        ret = json.loads(open('crap.json').read())
+
+    ids = list(map(lambda x: x[0], ret))  # 所有id
+    for i in range(len(ret)):
+        to_remove = []
+        # 遍历每个id的关系列表，剔除不存在的id
+        for j in range(len(ret[i][1])):
+            if ret[i][1][j] not in ids:
+                to_remove.append(ret[i][1][j])
+        for r in to_remove:
+            ret[i][1].remove(r)
+
+    ss = sorted(ret, key=lambda x: len(x[1]))
+    json.dump(ss, open('crap_filtered.json', 'w'))
+    up = ss[-34:]
+    down = ss[:-34]
     # 返回(nodeid,(与node相连的节点id))
-    return tuple(ret)
+    return up, down
 
 
 class Network:
@@ -78,7 +94,60 @@ class Network:
         self.cur_message: Message = None
 
     def generate_network(self):
-        self.adjMatrix = get_adj_matrix()
+
+        # TODO 分开上下层的节点
+        self.up, self.down = get_adj_matrix()
+
+        # 初始化两类节点
+        for id, _ in self.up:
+            node = Blogger(id)
+            node.interest = dict(map(lambda x: (x, random.random()), typeList))
+            self.nodes[id] = node
+
+        for id, _ in self.down:
+            node = Viewer(id)
+            node.interest = dict(map(lambda x: (x, random.random()), typeList))
+            self.nodes[id] = node
+
+        # 建立关系
+
+        for id, relation in self.up+self.down:
+            n: Node = self.nodes[id]
+            n.relationList = relation
+        '''
+        for id, edges in self.up:
+            s: Blogger = self.nodes[id]
+            for eid in edges:
+                u: Union[Viewer, Blogger] = self.nodes[eid]
+                if isinstance(u, Blogger):
+                    s.relationList.append(eid)
+                else:
+                    u.follow(s)
+
+        for id, edges in self.down:
+            s: Viewer = self.nodes[id]
+            for eid in edges:
+                u: Union[Viewer, Blogger] = self.nodes[eid]
+                if isinstance(u, Blogger):
+                    s.follow(u)
+                else:
+                    s.relationList.append(eid)
+        '''
+
+        i = 0
+        # 建立关注与被关注的关系
+        for d_id in map(lambda x: x[0], self.down):
+            for u_id in map(lambda x: x[0], self.up):
+                d: Viewer = self.nodes[d_id]
+                u: Blogger = self.nodes[u_id]
+                if d.interested_in_blogger(u):
+                    d.follow(u)
+                    i += 1
+
+        return
+
+        '''
+        # TODO 改成不用influence区分上下层
         for id, edge in self.adjMatrix:
             tempnode = Node(id)
             node: Union[Viewer, Blogger] = None
@@ -96,7 +165,9 @@ class Network:
             node.interest = dict(map(lambda x: (x, random.random()), typeList))
 
             self.nodes[id] = node
+        '''
 
+        '''
         i = 0
         values = self.nodes.values()
         node: Union[Viewer, Blogger]
@@ -114,6 +185,7 @@ class Network:
                 for u in random.choices(list(self.nodes.values()), k=random.randint(2, 1000)):
                     if isinstance(u, Viewer):
                         u.follow(node)
+        '''
 
     def addNode(self, node: Node):
         self.nodes[node.pid] = node
@@ -129,7 +201,7 @@ class Network:
         entry_nodes = list(filter(
             lambda x: x.interested_in(self.cur_message),
             self.nodes.values()))
-        entry_nodes = random.choices(entry_nodes, k=random.randint(1, 5))
+        entry_nodes = random.choices(entry_nodes, k=random.randint(5, 10))
         message.writer = random.choice(entry_nodes)
         self.paths = [(-1, tuple(map(lambda x: x.pid, entry_nodes)))]
         for n in entry_nodes:
@@ -148,6 +220,7 @@ class Network:
                 if node.interested_in(self.cur_message):
                     dests = tuple(node.forwardMessage(self.cur_message))
                     self.paths.append((node.pid, dests))
+                    node.status = NodeStatus.passed
                 else:
                     node.status = NodeStatus.terminated
 

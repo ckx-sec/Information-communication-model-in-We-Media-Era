@@ -31,4 +31,4 @@ for _ in range(5):
     # print(dict(n.get_paths()))
 
 paths.append(dict(n.get_paths()))
-json.dump(paths, open('paths.json', 'w'))
+json.dump(paths, open('paths_v2.json', 'w'))

@@ -21,7 +21,7 @@ class NodeStatus(Enum):
 class Node:
     def __init__(self, pid):
         self.pid = pid
-        self.relationList:list[int] = []  # 社会关系列表
+        self.relationList: list[int] = []  # 社会关系列表
 
         self.totalThumb = 0  # 总点赞数
         self.totalComments = 0  # 总评论数
@@ -54,10 +54,11 @@ class Node:
         # 爱好程度
         hobby_degree = sum(
             map(lambda x: self.interest[x], topicList))/len(topicList)
-        if hobby_degree > 0.9:
-            if hobby_degree > 0.95:
+        if hobby_degree > 0.7:
+            if hobby_degree > 0.75:
                 if message.writer:
-                    self.follow(message.writer)
+                    if not isinstance(self, Blogger):
+                        self.follow(message.writer)
             return True
         else:
             return False
@@ -93,6 +94,7 @@ class Viewer(Node):
     def __init__(self, pid):
         super().__init__(pid)
         self.following: list[int] = []  # 关注了谁
+        self.follower=[]
 
     def follow(self, node: Blogger):
         self.following.append(node.pid)
@@ -132,6 +134,14 @@ class Viewer(Node):
         for i in self.relationList:
             self.sendMessage(message, i)
 
+    def interested_in_blogger(self, blogger: Blogger):
+        # 爱好程度
+        hobby_degree = sum(
+            map(lambda x: abs(self.interest[x]-blogger.interest[x]), network.typeList))
+        if hobby_degree/len(network.typeList) < 0.6:
+            return True
+        return False
+
 
 class Blogger(Viewer):
     def __init__(self, pid):
@@ -153,4 +163,4 @@ class Blogger(Viewer):
         for i in self.relationList:
             self.sendMessage(message, i)
         for i in self.follower:
-            self.sendMessage(message, i.pid)
+            self.sendMessage(message, i)
