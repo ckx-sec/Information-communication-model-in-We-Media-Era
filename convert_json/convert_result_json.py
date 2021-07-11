@@ -24,7 +24,10 @@ all_city_cn = json.load(f_cn_city)
 
 f_world_city = open('cities_world.json', encoding='utf-8')
 all_city_world = json.load(f_world_city)
-all_city_world_list =  list(all_city_world)
+all_city_world_list_all = list(all_city_world)
+all_city_world_list = []
+for i in range(50):
+    all_city_world_list.append(random.choice(all_city_world_list_all))
 
 
 def generate_random_gps(base_log=None, base_lat=None, radius=None):
@@ -76,9 +79,10 @@ if __name__ == '__main__':
         data = json.loads(json_str)
 
         cnt = 0
+        cnt_turn = 0
         # 遍历一遍，先获取所有的点信息
         for eachTurn in data:
-
+            cnt_turn = cnt_turn + 1
             # print(keys)
 
             # print(eachTurn)
@@ -118,6 +122,7 @@ if __name__ == '__main__':
 
         # for i in
         # pointList.append()
+        print("TURNS: " + str(cnt_turn))
 
         routes = []
         turn_cnt = 0
@@ -171,10 +176,15 @@ if __name__ == '__main__':
         # fo = open('id2idxMapper.json', 'w')
         # fo.write(json_str)
 
+        # 构造出轮数
+        airlines = []
+        for i in range(cnt_turn):
+            airlines.append(['第' + str(i + 1) + '轮', ''])
+
         result = {'airports': pointsList,
                   'routes': routes,
-                  'airlines': [['第一轮', ''], ['第二轮', ''], ['第三轮', ''], ['第四轮', ''], ['第五轮', ''], ['23333', '']]}
-        fo = open('result.json', 'w', encoding='utf-8')
+                  'airlines': airlines}
+        fo = open('result_v2.json', 'w', encoding='utf-8')
         fo.write(json.dumps(result))
 
         print(result['airlines'])
