@@ -42,6 +42,14 @@ class Message:
         from sklearn import metrics
         clf = MultinomialNB(alpha = 0.01)
         clf.fit(x_train, y_train)
-        preds = clf.predict(self.content)
+        
+        wei = []
+        word = is_ustr(self.content)
+        words = jieba_main(word)
+        for i in words:
+            wei.append(i)
+        garbage = yy_stpword()
+        wei = list(filter(lambda x: x not in garbage and x != ' ', wei))
+        preds = clf.predict(wei)
 
         return preds
