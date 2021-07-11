@@ -54,8 +54,8 @@ class Node:
         # 爱好程度
         hobby_degree = sum(
             map(lambda x: self.interest[x], topicList))/len(topicList)
-        if hobby_degree > 0.7:
-            if hobby_degree > 0.75:
+        if hobby_degree > 0.6:
+            if hobby_degree > 0.65:
                 if message.writer:
                     if not isinstance(self, Blogger):
                         self.follow(message.writer)
@@ -138,7 +138,7 @@ class Viewer(Node):
         # 爱好程度
         hobby_degree = sum(
             map(lambda x: abs(self.interest[x]-blogger.interest[x]), network.typeList))
-        if hobby_degree/len(network.typeList) < 0.6:
+        if hobby_degree/len(network.typeList) < 0.2:
             return True
         return False
 
