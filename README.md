@@ -1,6 +1,6 @@
 # social_network_model
 
-something maybe I like
+basic one is already done
 
 ## 关于 web 文件夹
 
