@@ -10,7 +10,7 @@ basic one is already done
 
 这个文件夹里面的 `convert_result_json.py` 文件是用来把 `path1.json` 这种模型结果转换为前端可直接读取的 json 文件：`result.json`
 
-## crap.json
+## cache.json
 
 处理过后的原始数据  
 这个文件存在是因为直接用原始数据太慢了
