@@ -8,14 +8,7 @@ import os
 
 msg = Message(None, 'sample content',
               random.choices(typeList, k=random.randint(2, 9)))
-'''
-if os.path.isfile('network'):
-    n = pickle.load(open('network', 'rb'))
-else:
-    n = Network()
-    n.generate_network()
-    pickle.dump(n, open('network', 'wb'))
-'''
+
 n = Network()
 n.generate_network()
 n.init_step(msg)
