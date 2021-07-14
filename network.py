@@ -29,7 +29,7 @@ typeList: list[str] = ["sport", "fashion", "food", "tourism", "furniture", "hist
 
 def get_adj_matrix():
 
-    if not os.path.isfile('crap.json'):
+    if not os.path.isfile('cache.json'):
 
         f = open("nodes", "r", encoding="utf-8").readlines()
         node_ids = map(lambda x: int(x.split(',')[-1]), f)
@@ -57,10 +57,10 @@ def get_adj_matrix():
                 edges_len -= 1
             ret.append((id, list(relation_ids)))
 
-        open('crap.json', 'w').write(json.dumps(ret))
+        open('cache.json', 'w').write(json.dumps(ret))
 
     else:
-        ret = json.loads(open('crap.json').read())
+        ret = json.loads(open('cache.json').read())
 
     ids = list(map(lambda x: x[0], ret))  # 所有id
     for i in range(len(ret)):
@@ -73,7 +73,7 @@ def get_adj_matrix():
             ret[i][1].remove(r)
 
     ss = sorted(ret, key=lambda x: len(x[1]))
-    json.dump(ss, open('crap_filtered.json', 'w'))
+    json.dump(ss, open('cache_filtered.json', 'w'))
     up = ss[-34:]
     down = ss[:-34]
     # 返回(nodeid,(与node相连的节点id))
