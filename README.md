@@ -2,6 +2,12 @@
 
 basic one is already done
 
+## 使用方法
+运行`run_network.py`,得到`paths_v2.json`  
+其中包含消息的传播路径信息  
+然后使用`convert_json.py`转换之，得到`result.json`  
+将`result.json`放进web目录
+
 ## 关于 web 文件夹
 
 这个文件夹为前端部分，目前直接运行一个简单的 live-server 打开 `lines.html` 即可
