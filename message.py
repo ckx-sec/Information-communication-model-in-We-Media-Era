@@ -1,4 +1,5 @@
 from __future__ import annotations
+import functools
 import time
 from typing import List
 import node
@@ -7,15 +8,15 @@ import numpy as np
 
 
 class Message:
-    def __init__(self, writer: node.Node, content: str, topicList: List[str]):
+    def __init__(self, writer: node.Node, content: str):
         self.likes = 0
         self.forwards = 0
         self.comments = 0
         self.writer = writer
         self.content = content
-        self.topicList = topicList
         self.timestamp = time.time()
 
+    @functools.lru_cache
     def getClassification(self):
         MAX_SEQUENCE_LENGTH = 100 # 每条新闻最大长度
         EMBEDDING_DIM = 200 # 词向量空间维度
