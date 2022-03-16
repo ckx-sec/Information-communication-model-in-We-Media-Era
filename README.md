@@ -28,3 +28,16 @@ basic one is already done
 ## viewers.json bloggers.json
 
 层间关系与跨层的关注关系
+
+
+1 汽车
+2 财经
+3 IT
+4 健康
+5 体育
+6 旅游
+7 教育
+8 军事
+9 文化
+10娱乐
+11时尚
