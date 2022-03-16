@@ -2,7 +2,7 @@ from __future__ import annotations
 import time
 from typing import List
 import node
-
+import jieba
 
 class Message:
     def __init__(self, writer: node.Node, content: str, topicList: List[str]):
