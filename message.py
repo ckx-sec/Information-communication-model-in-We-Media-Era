@@ -2,6 +2,7 @@ from __future__ import annotations
 import time
 from typing import List
 import node
+import jieba
 
 
 class Message:
@@ -50,32 +51,34 @@ class Message:
             wei.append(i)
         garbage = yy_stpword()
         wei = list(filter(lambda x: x not in garbage and x != ' ', wei))
-        preds = clf.predict(wei)
+        counts_test = count_v1.fit_transform(wei)
+        test_data = tfidftransformer.fit(counts_test).transform(counts_test)
+        preds = clf.predict([test_data])
 
         return preds
-    # 除去非中文部分
-    def is_ustr(in_str):
-        out_str = ''
-        for i in range(len(in_str)):
-            if is_uchar(in_str[i]):
-                out_str = out_str+in_str[i]
-        return out_str
+# 除去非中文部分
+def is_ustr(in_str):
+    out_str = ''
+    for i in range(len(in_str)):
+        if is_uchar(in_str[i]):
+            out_str = out_str+in_str[i]
+    return out_str
 
 
-    def is_uchar(uchar):
-        """判断一个unicode是否是汉字"""
-        if uchar >= u'\u4e00' and uchar <= u'\u9fa5':
-            return True
-        else:
-            return False
+def is_uchar(uchar):
+    """判断一个unicode是否是汉字"""
+    if uchar >= u'\u4e00' and uchar <= u'\u9fa5':
+        return True
+    else:
+        return False
 
-    # jieba中文分词
-    def jieba_main(out_str):
-        cut_str = jieba.cut(out_str)
-        return list(cut_str)
+# jieba中文分词
+def jieba_main(out_str):
+    cut_str = jieba.cut(out_str)
+    return list(cut_str)
 
-    # 引用停用词
-    def yy_stpword():
-        stpwrdpath = "./stop_words.txt"  # 停用词文本路径
-        lines = open(stpwrdpath, encoding='utf-8').readlines()
-        return list(map(lambda x: x.strip(), lines))
+# 引用停用词
+def yy_stpword():
+    stpwrdpath = "./stop_words.txt"  # 停用词文本路径
+    lines = open(stpwrdpath, encoding='utf-8').readlines()
+    return list(map(lambda x: x.strip(), lines))

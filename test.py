@@ -3,8 +3,9 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+from typing import List
 
-typeList: list[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
+typeList: List[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
                   "gossip", "geography", "language", "movie", "music", "photography", "finance", "technology", "news"]
 
 f = open("nodes", "r", encoding="utf-8").readlines()

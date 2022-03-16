@@ -5,6 +5,7 @@ from message import *
 from enum import Enum
 import random
 import network
+from typing import List,Dict
 
 
 class NodeStatus(Enum):
@@ -21,7 +22,7 @@ class NodeStatus(Enum):
 class Node:
     def __init__(self, pid):
         self.pid = pid
-        self.relationList: list[int] = []  # 社会关系列表
+        self.relationList: List[int] = []  # 社会关系列表
 
         self.totalThumb = 0  # 总点赞数
         self.totalComments = 0  # 总评论数
@@ -30,7 +31,7 @@ class Node:
         self.influence = 0  # 影响力
         self.receiveList = []  # 接收的文章列表
         self.articles = []  # 自己发布的原创性文章
-        self.interest: dict = {}
+        self.interest: Dict = {}
         self.status: NodeStatus = NodeStatus.fresh
 
     # unused
@@ -93,7 +94,7 @@ class Node:
 class Viewer(Node):
     def __init__(self, pid):
         super().__init__(pid)
-        self.following: list[int] = []  # 关注了谁
+        self.following: List[int] = []  # 关注了谁
         self.follower=[]
 
     def follow(self, node: Blogger):
@@ -120,7 +121,7 @@ class Viewer(Node):
         viewer.influence = 0  # 影响力
         viewer.receiveList = []  # 接收的文章列表
         viewer.articles = []  # 自己发布的原创性文章
-        viewer.interest: dict = {}
+        viewer.interest: Dict = {}
         viewer.status: NodeStatus = NodeStatus.fresh
 
         pass
@@ -146,7 +147,7 @@ class Viewer(Node):
 class Blogger(Viewer):
     def __init__(self, pid):
         super().__init__(pid)
-        self.follower: list[int] = []  # 谁关注了我
+        self.follower: List[int] = []  # 谁关注了我
 
     def forwardMessage(self, message: Message):
         message.forwards += 1

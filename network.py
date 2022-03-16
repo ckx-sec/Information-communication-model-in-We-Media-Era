@@ -6,10 +6,10 @@ import random
 import numpy as np
 from message import *
 from node import *
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union,Dict
 from itertools import repeat
 
-nodes: dict = {}
+nodes: Dict = {}
 
 
 """
@@ -23,7 +23,7 @@ nodes: dict = {}
 对不上就不传播
 """
 
-typeList: list[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
+typeList: List[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
                        "gossip", "geography", "language", "movie", "music", "photography", "finance", "technology", "news"]
 
 
@@ -39,7 +39,7 @@ def get_adj_matrix():
                 map(lambda y: int(y), x.split(','))),
             f1))
 
-        ret: list[tuple[int, list[int]]] = []
+        ret: List[tuple[int, list[int]]] = []
         for id in node_ids:
             relation_ids = []
             i = 0
@@ -84,13 +84,13 @@ class Network:
     nodes = nodes
 
     def __init__(self):
-        # self.nodes: dict = {}
+        # self.nodes: Dict = {}
 
         self.edges: List[Tuple[Node, Node]] = []
         self.adjMatrix = np.zeros(
             [len(self.nodes), len(self.nodes)], dtype=int)
-        self.type: list = []
-        self.paths: list[tuple[int, tuple[int]]] = []
+        self.type: List = []
+        self.paths: List[tuple[int, tuple[int]]] = []
         self.cur_message: Message = None
 
     def generate_network(self):
