@@ -2,6 +2,13 @@
 
 basic one is already done
 
+## 环境搭建
+```sh
+conda create --file env.yaml -n Social-Network-Model
+git clone https://github.com/bolozna/Multilayer-networks-library
+cd Multilayer-networks-library && python setup.py install
+```
+
 ## 使用方法
 运行`run_network.py`,得到`paths_v2.json`  
 其中包含消息的传播路径信息  
