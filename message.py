@@ -50,7 +50,10 @@ class Message:
             wei.append(i)
         garbage = yy_stpword()
         wei = list(filter(lambda x: x not in garbage and x != ' ', wei))
-        preds = clf.predict(wei)
+        counts_test = count_v1.fit_transform(wei)
+        test_data = tfidftransformer.fit(counts_test).transform(counts_test)
+        
+        preds = clf.predict(test_data)
 
         return preds
     # 除去非中文部分
