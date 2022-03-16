@@ -6,7 +6,7 @@ import random
 import numpy as np
 from message import *
 from node import *
-from typing import Tuple, List, Union,Dict
+from typing import Tuple, List, Union, Dict
 from itertools import repeat
 
 nodes: Dict = {}
@@ -23,8 +23,9 @@ nodes: Dict = {}
 对不上就不传播
 """
 
-typeList: List[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
-                       "gossip", "geography", "language", "movie", "music", "photography", "finance", "technology", "news"]
+# typeList: List[str] = ["sport", "fashion", "food", "tourism", "furniture", "history", "vehicle", "anime", "game",
+#                        "gossip", "geography", "language", "movie", "music", "photography", "finance", "technology", "news"]
+typeList: List[str] = list(map(str, range(12)))
 
 
 def get_adj_matrix():
