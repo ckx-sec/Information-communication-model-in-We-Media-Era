@@ -4,7 +4,6 @@ from typing import List
 import node
 import jieba
 
-
 class Message:
     def __init__(self, writer: node.Node, content: str, topicList: List[str]):
         self.likes = 0
@@ -53,7 +52,8 @@ class Message:
         wei = list(filter(lambda x: x not in garbage and x != ' ', wei))
         counts_test = count_v1.fit_transform(wei)
         test_data = tfidftransformer.fit(counts_test).transform(counts_test)
-        preds = clf.predict([test_data])
+        
+        preds = clf.predict(test_data)
 
         return preds
 # 除去非中文部分
