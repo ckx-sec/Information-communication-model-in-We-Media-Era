@@ -3,6 +3,8 @@ import time
 from typing import List
 import node
 import jieba
+import numpy as np
+
 
 class Message:
     def __init__(self, writer: node.Node, content: str, topicList: List[str]):
@@ -19,23 +21,27 @@ class Message:
         EMBEDDING_DIM = 200 # 词向量空间维度
         TEST_SPLIT = 0.2 # 测试集比例
 
-        train_texts = open('train_contents.txt').read().split('\n')
-        train_labels = open('train_labels.txt').read().split('\n')
-        test_texts = open('test_contents.txt').read().split('\n')
-        test_labels = open('test_labels.txt').read().split('\n')
+        train_texts = open('train_contents.txt',encoding='utf8').read().split('\n') # 17600,xxx
+        print(len(train_texts[0]))
+        train_labels = open('train_labels.txt',encoding='utf8').read().split('\n')
+        test_texts = open('test_contents.txt',encoding='utf8').read().split('\n')
+        test_labels = open('test_labels.txt',encoding='utf8').read().split('\n')
         all_text = train_texts + test_texts
 
         from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
         count_v0= CountVectorizer()
         counts_all = count_v0.fit_transform(all_text)
         count_v1= CountVectorizer(vocabulary=count_v0.vocabulary_)
-        counts_train = count_v1.fit_transform(train_texts)
+        # print(type(train_texts[0]))
+        counts_train = count_v1.fit_transform(train_texts)#17600,xxx
         count_v2 = CountVectorizer(vocabulary=count_v0.vocabulary_)
   
         tfidftransformer = TfidfTransformer()
         train_data = tfidftransformer.fit(counts_train).transform(counts_train)
 
-        x_train = train_data
+        x_train = train_data #(17600, 62418)
+        # print("train\n")
+        # print(type(train_data[0]))
         y_train = train_labels
 
         from sklearn.naive_bayes import MultinomialNB
@@ -44,18 +50,23 @@ class Message:
         clf.fit(x_train, y_train)
         
         wei = []
-        word = is_ustr(self.content)
+        word = is_ustr(self.content) # 1,xxx
         words = jieba_main(word)
         for i in words:
             wei.append(i)
         garbage = yy_stpword()
-        wei = list(filter(lambda x: x not in garbage and x != ' ', wei))
-        counts_test = count_v1.fit_transform(wei)
-        test_data = tfidftransformer.fit(counts_test).transform(counts_test)
+        wei = list(filter(lambda x: x not in garbage and x != ' ', wei)) # 49
         
+        result = " ".join(wei)
+        #print(result)
+        counts_test = count_v2.fit_transform([result]) # 1,62418
+        tfidftransformer2 = TfidfTransformer()
+        test_data = tfidftransformer2.fit(counts_test).transform(counts_test)
+        print("test\n")
+        print(test_data.shape)
         preds = clf.predict(test_data)
-
-        return preds
+        print(preds[0])
+        return preds[0]
 # 除去非中文部分
 def is_ustr(in_str):
     out_str = ''
