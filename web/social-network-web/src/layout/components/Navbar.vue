@@ -1,7 +1,7 @@
 <template>
   <div class="navbar">
     <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-    <div class="title"> 基于复杂网络的新型社交模型及信息传播分析平台 </div>
+    <div class="title"> 基于多维网络模型的社交媒体信息传播可视化分析软件 </div>
 
     <breadcrumb class="breadcrumb-container" />
     <div class="right-menu">

@@ -6,7 +6,7 @@ function resolve(dir) {
   return path.join(__dirname, dir)
 }
 
-const name = defaultSettings.title || '基于复杂网络的新型社交模型及信息传播分析平台' // page title
+const name = defaultSettings.title || '基于多维网络模型的社交媒体信息传播可视化分析软件' // page title
 
 // If your port is set to 80,
 // use administrator privileges to execute the command line.

@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: '基于复杂网络的新型社交模型及信息传播分析平台',
+  title: '基于多维网络模型的社交媒体信息传播可视化分析软件',
 
   /**
    * @type {boolean} true | false
